@@ -1,0 +1,1376 @@
+<meta charset="utf-8">
+<title>새싹 수비대</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
+<style>
+:root{
+  --bg:#F6EFDD; --bg-deep:#EAE0C4; --surface:#FFFBF1; --surface-2:#FFF3D9;
+  --ink:#2E2418; --ink-soft:#7A6A50; --leaf:#4FA35E; --leaf-deep:#2C6B3B;
+  --leaf-pale:#C4EABB; --sun:#F5AC2E; --sun-deep:#D67F12; --rose:#EA5C8A;
+  --sky:#6FB6E0; --danger:#E0523C; --border:#D8C79A; --shadow:rgba(60,45,20,.18);
+  --locked:#DED2AE;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#161E19; --bg-deep:#10150F; --surface:#212B23; --surface-2:#26332A;
+    --ink:#EDE7D6; --ink-soft:#A79C84; --leaf:#6FBE7E; --leaf-deep:#4C8B5B;
+    --leaf-pale:#2C4432; --sun:#F3B85C; --sun-deep:#D99A3A; --rose:#EE86A6;
+    --sky:#7FB8DE; --danger:#E5776D; --border:#3A4A3D; --shadow:rgba(0,0,0,.45);
+    --locked:#33402F;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#161E19; --bg-deep:#10150F; --surface:#212B23; --surface-2:#26332A;
+  --ink:#EDE7D6; --ink-soft:#A79C84; --leaf:#6FBE7E; --leaf-deep:#4C8B5B;
+  --leaf-pale:#2C4432; --sun:#F3B85C; --sun-deep:#D99A3A; --rose:#EE86A6;
+  --sky:#7FB8DE; --danger:#E5776D; --border:#3A4A3D; --shadow:rgba(0,0,0,.45);
+  --locked:#33402F;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
+html,body{height:100%;}
+body{
+  margin:0; background:
+    radial-gradient(circle at 15% 10%, color-mix(in srgb, var(--leaf-pale) 55%, transparent), transparent 42%),
+    radial-gradient(circle at 85% 90%, color-mix(in srgb, var(--sun) 18%, transparent), transparent 45%),
+    var(--bg);
+  color:var(--ink); font-family:"Gowun Dodum","Malgun Gothic",sans-serif;
+  min-height:100vh; display:flex; align-items:flex-start; justify-content:center;
+  padding:18px 12px 40px; overflow-x:hidden;
+}
+h1,h2,h3,.display{font-family:"Jua","Malgun Gothic",sans-serif; font-weight:400; text-wrap:balance;}
+button{font-family:inherit; cursor:pointer;}
+.hidden{display:none!important;}
+
+/* ---------- shell ---------- */
+.game-shell{
+  width:min(96vw,760px); background:var(--surface-2);
+  border:3px solid var(--border); border-radius:22px;
+  box-shadow:0 14px 34px var(--shadow); padding:10px;
+  display:flex; flex-direction:column; gap:8px; position:relative;
+}
+.title-row{display:flex; align-items:baseline; justify-content:center; gap:8px; padding:2px 0 4px;}
+.title-row h1{font-size:22px; margin:0; color:var(--leaf-deep); letter-spacing:.5px;}
+.title-row span{font-size:11px; color:var(--ink-soft);}
+
+/* top bar */
+.topbar{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+.pill{
+  display:flex; align-items:center; gap:6px; background:var(--surface);
+  border:2px solid var(--border); border-radius:999px; padding:5px 12px 5px 6px;
+  font-size:13px; box-shadow:inset 0 1px 0 rgba(255,255,255,.4);
+}
+.pill .icon-badge{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;background:var(--surface-2);}
+.pill b{font-variant-numeric:tabular-nums; font-size:14px;}
+.topbar-left{display:flex; gap:6px; align-items:center;}
+.topbar-right{display:flex; gap:6px; align-items:center;}
+.wave-pill{flex-direction:column; align-items:flex-start; gap:0; padding:4px 12px;}
+.wave-pill .wl1{font-size:10px; color:var(--ink-soft);}
+.wave-pill .wl2{font-size:13px; font-family:"Jua"; color:var(--leaf-deep);}
+#hpbar-wrap{width:64px;height:7px;border-radius:5px;background:var(--locked);overflow:hidden;margin-top:2px;}
+#hpbar-fill{height:100%; background:linear-gradient(90deg,var(--danger),var(--sun)); width:100%; transition:width .3s;}
+.icon-btn{
+  width:44px;height:44px;border-radius:50%; border:2px solid var(--border);
+  background:var(--surface); display:flex; align-items:center; justify-content:center;
+  font-size:20px; box-shadow:0 3px 0 var(--border); transition:transform .12s;
+}
+.icon-btn:active{transform:translateY(2px); box-shadow:0 1px 0 var(--border);}
+.icon-btn.square{border-radius:16px;}
+.icon-btn.active-mode{background:var(--leaf); color:#fff; border-color:var(--leaf-deep);}
+
+/* field */
+.field-wrap{
+  position:relative; border-radius:16px; overflow:hidden; border:3px solid var(--leaf-deep);
+  background:linear-gradient(180deg,#EFE3BE,#E3D3A2);
+  aspect-ratio:16/9;
+}
+@media (max-width:620px){ .field-wrap{aspect-ratio:3/4;} }
+canvas{display:block; width:100%; height:100%; touch-action:none;}
+.field-flash{position:absolute; inset:0; background:var(--sun); opacity:0; pointer-events:none; mix-blend-mode:screen;}
+
+/* bottom bar */
+.bottombar{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+.bottombar-left{display:flex; gap:8px; align-items:center;}
+.tray-toggle-wrap{display:flex; flex-direction:column; align-items:center; gap:2px;}
+.tray-toggle-wrap span, .synth-wrap span, .shop-wrap span{font-size:10px; color:var(--ink-soft);}
+.synth-wrap, .shop-wrap{display:flex; flex-direction:column; align-items:center; gap:2px;}
+
+/* card tray */
+.tray{
+  display:flex; gap:8px; overflow-x:auto; padding:8px 4px; margin-top:2px;
+  border-top:2px dashed var(--border);
+}
+.card{
+  flex:0 0 auto; width:78px; background:var(--surface); border:2px solid var(--border);
+  border-radius:14px; padding:6px 4px 7px; text-align:center; cursor:grab;
+  box-shadow:0 3px 0 var(--border); position:relative; touch-action:none;
+}
+.card canvas{width:44px;height:44px;margin:0 auto;display:block;}
+.card .cname{font-size:11px; margin-top:2px; line-height:1.15;}
+.card .ccost{font-size:11px; color:var(--sun-deep); font-family:"Jua";}
+.card.locked{opacity:.55; filter:grayscale(.5);}
+.card.locked::after{content:"🔒"; position:absolute; top:4px; right:6px; font-size:12px;}
+.card.selected{outline:3px solid var(--leaf); transform:translateY(-3px);}
+.card.dragging{opacity:.35;}
+.drag-ghost{position:fixed; width:52px; height:52px; pointer-events:none; z-index:999; transform:translate(-50%,-50%); filter:drop-shadow(0 6px 8px rgba(0,0,0,.3));}
+
+/* modal */
+.overlay{position:absolute; inset:0; background:rgba(20,15,5,.55); display:flex; align-items:center; justify-content:center; padding:16px; border-radius:19px; z-index:50;}
+.modal{
+  background:var(--surface); border:3px solid var(--border); border-radius:18px;
+  max-width:420px; width:100%; max-height:88%; overflow-y:auto; padding:16px 16px 18px;
+  box-shadow:0 20px 40px rgba(0,0,0,.35);
+}
+.modal h2{margin:0 0 4px; font-size:19px; color:var(--leaf-deep);}
+.modal .sub{font-size:12px; color:var(--ink-soft); margin-bottom:10px;}
+.modal-close{position:sticky; top:0; float:right; background:none; border:none; font-size:18px; color:var(--ink-soft);}
+.btn{
+  background:var(--leaf); color:#fff; border:none; border-radius:12px; padding:10px 16px;
+  font-family:"Jua"; font-size:14px; box-shadow:0 3px 0 var(--leaf-deep); width:100%;
+}
+.btn:active{transform:translateY(2px); box-shadow:0 1px 0 var(--leaf-deep);}
+.btn.secondary{background:var(--surface-2); color:var(--ink); box-shadow:0 3px 0 var(--border);}
+.btn.danger{background:var(--danger); box-shadow:0 3px 0 #9E3A2C;}
+.btn:disabled{opacity:.45; filter:grayscale(.4);}
+.stack{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
+.row2{display:flex; gap:8px;}
+.shop-item, .recipe{
+  display:flex; align-items:center; gap:10px; background:var(--surface-2); border:2px solid var(--border);
+  border-radius:14px; padding:8px 10px; margin-bottom:8px;
+}
+.shop-item canvas, .recipe canvas{flex:0 0 auto;}
+.shop-item .meta, .recipe .meta{flex:1; min-width:0;}
+.shop-item .meta b, .recipe .meta b{display:block; font-size:14px;}
+.shop-item .meta .d, .recipe .meta .d{font-size:11px; color:var(--ink-soft); line-height:1.3;}
+.shop-item button, .recipe button{flex:0 0 auto; font-family:"Jua"; font-size:12px; background:var(--sun); border:none; color:#553200; padding:8px 10px; border-radius:10px; box-shadow:0 3px 0 var(--sun-deep);}
+.shop-item button:disabled, .recipe button:disabled{opacity:.4;}
+.recipe .plus{font-size:16px; color:var(--ink-soft);}
+.recipe .eq{font-size:16px; color:var(--ink-soft);}
+.shop-tabs{display:flex; gap:6px; margin-bottom:10px;}
+.shop-tab{flex:1; font-family:"Jua"; font-size:13px; padding:8px; border-radius:10px; border:2px solid var(--border); background:var(--surface-2); color:var(--ink-soft);}
+.shop-tab.on{background:var(--leaf); color:#fff; border-color:var(--leaf-deep);}
+.upg-btns{display:flex; flex-direction:column; gap:5px; flex:0 0 auto;}
+.upg-btns button{font-family:"Jua"; font-size:11px; border:none; border-radius:8px; padding:6px 9px; white-space:nowrap; box-shadow:0 2px 0 rgba(0,0,0,.15);}
+.upg-btns .upg-atk{background:var(--rose); color:#fff;}
+.upg-btns .upg-hp{background:var(--leaf); color:#fff;}
+.upg-btns button:disabled{opacity:.4; box-shadow:none;}
+.lvdots{display:inline-flex; gap:2px; vertical-align:middle; margin-left:4px;}
+.lvdots span{width:6px; height:6px; border-radius:50%; background:var(--border);}
+.lvdots span.on{background:var(--sun);}
+
+/* start / tutorial / gameover */
+.center-screen{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; background:var(--surface-2); border-radius:19px; text-align:center; padding:20px; z-index:60;}
+.center-screen h1{font-size:30px; color:var(--leaf-deep); margin:0;}
+.center-screen p{font-size:13px; color:var(--ink-soft); max-width:320px; margin:0;}
+.bug-strip{display:flex; gap:10px;}
+.bug-strip canvas{width:40px;height:40px;}
+.tut-step{max-width:340px;}
+.tut-step .tut-img{width:120px;height:90px;margin:0 auto;}
+.tut-dots{display:flex; gap:5px; justify-content:center;}
+.tut-dots span{width:6px;height:6px;border-radius:50%;background:var(--border);}
+.tut-dots span.on{background:var(--leaf);}
+.toast{position:absolute; left:50%; top:10px; transform:translateX(-50%); background:var(--ink); color:var(--bg); font-size:12px; padding:7px 14px; border-radius:999px; z-index:80; opacity:0; transition:opacity .25s, top .25s; pointer-events:none;}
+.toast.show{opacity:.95; top:16px;}
+.info-pop{position:absolute; background:var(--surface); border:2px solid var(--border); border-radius:14px; padding:10px; width:170px; z-index:70; box-shadow:0 10px 20px rgba(0,0,0,.3); font-size:12px;}
+.info-pop b{font-family:"Jua"; font-size:14px; display:block; margin-bottom:2px;}
+.info-pop .bar{height:6px;border-radius:4px;background:var(--locked);overflow:hidden;margin:4px 0;}
+.info-pop .bar i{display:block;height:100%;background:var(--leaf);}
+.info-pop button{margin-top:6px;}
+.weather-tag{font-size:10px; padding:2px 8px; border-radius:999px; background:var(--sky); color:#0b3550;}
+.weather-tag.rain{background:var(--sky);}
+.weather-tag.drought{background:#E7C77A; color:#5A3B10;}
+.weather-tag.sunny{background:var(--sun); color:#553200;}
+</style>
+
+<div class="game-shell" id="shell">
+  <div class="title-row"><h1>🌱 새싹 수비대</h1><span>정원 가꾸기 타워디펜스</span></div>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="pill" id="weatherPill"><span class="icon-badge" id="weatherIcon">☀️</span><span class="weather-tag sunny" id="weatherTag">맑음</span></div>
+      <div class="pill"><span class="icon-badge">💧</span><b id="waterCount">5/5</b></div>
+    </div>
+    <div class="topbar-right">
+      <div class="pill"><span class="icon-badge">☀</span><b id="coinCount">10</b>C</div>
+      <div class="pill wave-pill"><span class="wl1" id="waveTimerLabel">다음 웨이브까지</span><span class="wl2" id="waveLabel">1 / 15</span><div id="hpbar-wrap"><div id="hpbar-fill"></div></div></div>
+      <button class="icon-btn" id="btnSettings" title="설정">⚙</button>
+    </div>
+  </div>
+
+  <div class="field-wrap" id="fieldWrap">
+    <canvas id="game"></canvas>
+    <div class="field-flash" id="fieldFlash"></div>
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <div class="bottombar">
+    <div class="bottombar-left">
+      <div class="tray-toggle-wrap"><button class="icon-btn" id="btnTray" title="식물 목록">🌿</button><span>식물목록</span></div>
+      <div class="synth-wrap"><button class="icon-btn square" id="btnSynth" title="합성">🧪</button><span>합성</span></div>
+    </div>
+    <div class="shop-wrap"><button class="icon-btn" id="btnShop" title="상점">🏠</button><span>상점</span></div>
+  </div>
+
+  <div class="tray" id="tray"></div>
+
+  <!-- overlays mounted dynamically into #overlayHost -->
+  <div id="overlayHost"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================== DATA ============================== */
+const ROWS=5, COLS=8;
+const TOTAL_WAVES=15;
+
+const PLANTS = {
+  sunflower:{id:"sunflower",name:"해바라기",cost:6,hp:80,range:0,atk:0,atkSpeed:0,
+    kind:"support",genAmount:2,genPeriod:7,buffPct:0.18,
+    desc:"주기적으로 코인을 만들고 이웃 식물의 공격력을 올려줘요.",
+    ult:"태양 폭발 — 모든 이웃의 공격력을 크게 올려요"},
+  rose:{id:"rose",name:"장미 덩굴",cost:5,hp:100,range:3,atk:9,atkSpeed:1.2,proj:false,maxTargets:2,
+    kind:"melee", desc:"뻗어나간 가시덩굴로 3칸 앞, 동시에 2마리까지 찔러요. 싸고 빠르지만 위력은 약해요.",
+    ult:"가시 폭풍 — 사정거리의 모든 벌레를 강타해요"},
+  dandelion:{id:"dandelion",name:"민들레",cost:8,hp:70,range:5,atk:15,atkSpeed:1.15,proj:true,projSpeed:6.5,maxTargets:3,
+    kind:"ranged", desc:"홀씨를 날려 5칸 앞, 최대 3마리를 동시에 저격해요.",
+    ult:"홀씨 폭풍 — 3연발 홀씨를 발사해요"},
+  flytrap:{id:"flytrap",name:"파리지옥",cost:15,hp:120,range:2,atk:20,atkSpeed:1.5,proj:false,maxTargets:1,
+    kind:"trap", trapDuration:3, desc:"벌레 1마리를 꽉 물어 잠시 가둬버려요.",
+    ult:"심연의 아가리 — 가둔 벌레에게 큰 피해를 줘요"},
+  lavender:{id:"lavender",name:"라벤더",cost:18,hp:90,range:4,atk:10,atkSpeed:1.8,proj:false,maxTargets:3,
+    kind:"control", slowPct:0.45, slowDuration:2.6, knockback:0.7,
+    desc:"향기로 최대 3마리를 동시에 밀어내고 둔화시켜요. 데미지보다 방해가 특기예요.",
+    ult:"향기 폭풍 — 필드 전체 벌레를 밀어내고 둔화시켜요"},
+  cactus:{id:"cactus",name:"선인장",cost:25,hp:280,range:1,atk:27,atkSpeed:1.1,proj:false,maxTargets:1,
+    kind:"wall", desc:"튼튼한 방벽으로 길을 막고 강하게 반격해요.",
+    ult:"가시 방벽 — 잠시 무적이 되며 반사 피해를 줘요"},
+
+  thornSun:{id:"thornSun",name:"가시 해바라기",cost:11,hp:140,range:3,atk:24,atkSpeed:0.85,proj:false,maxTargets:2,
+    kind:"melee",genAmount:2,genPeriod:9,buffPct:0.1,recipe:["sunflower","rose"],
+    desc:"찌르며 공격하는 동시에 코인도 만들어내요. 2마리까지 동시 타격.",
+    ult:"황금 가시 — 강력한 다단 히트로 찔러요"},
+  windDandelion:{id:"windDandelion",name:"바람 민들레",cost:26,hp:95,range:5,atk:22,atkSpeed:1,proj:true,projSpeed:7.5,maxTargets:3,
+    kind:"ranged",knockback:0.5,recipe:["dandelion","lavender"],
+    desc:"홀씨가 명중할 때마다 벌레를 밀어내요. 최대 3마리 동시 공격.",
+    ult:"질풍 홀씨 — 사정거리 전체에 광역 넉백을 일으켜요"},
+  ironCactus:{id:"ironCactus",name:"철가시 선인장",cost:30,hp:420,range:1,atk:34,atkSpeed:1,proj:false,maxTargets:1,
+    kind:"wall",recipe:["rose","cactus"],
+    desc:"엄청난 맷집으로 길을 막고 강하게 반격해요.",
+    ult:"철벽 반격 — 큰 반사 피해와 함께 무적이 돼요"},
+  mistTrap:{id:"mistTrap",name:"안개 파리지옥",cost:33,hp:150,range:3,atk:26,atkSpeed:1.3,proj:false,maxTargets:2,
+    kind:"trap",trapDuration:2.2,slowPct:0.5,slowDuration:3,recipe:["flytrap","lavender"],
+    desc:"넓은 범위의 벌레 2마리까지 동시에 가두고 둔화시켜요.",
+    ult:"안개 심연 — 범위 내 모든 벌레를 가둬요"},
+  sporeTrap:{id:"sporeTrap",name:"포자 지옥",cost:23,hp:110,range:5,atk:20,atkSpeed:1,proj:true,projSpeed:6.5,maxTargets:3,
+    kind:"ranged",rootChance:0.3,rootDuration:1.4,recipe:["dandelion","flytrap"],
+    desc:"홀씨가 명중하면 확률로 벌레를 뿌리내리게 해요. 최대 3마리 동시 공격.",
+    ult:"포자 폭발 — 사정거리 모든 벌레를 뿌리내리게 해요"},
+};
+const STARTER_UNLOCKED=["rose","dandelion"];
+const UPGRADE_MAX=5;
+const ATK_UP_PCT=0.15, HP_UP_PCT=0.2; // per level
+function atkUpgradeCost(id,lvl){ return Math.round(PLANTS[id].cost*(1.1+lvl*0.9)); }
+function hpUpgradeCost(id,lvl){ return Math.round(PLANTS[id].cost*(0.9+lvl*0.75)); }
+function effAtk(def){ const lvl=(G.plantUpgrades[def.id]&&G.plantUpgrades[def.id].atk)||0; return def.atk*(1+ATK_UP_PCT*lvl); }
+function effHpMax(def){ const lvl=(G.plantUpgrades[def.id]&&G.plantUpgrades[def.id].hp)||0; return def.hp*(1+HP_UP_PCT*lvl); }
+const PLANT_ORDER=["sunflower","rose","dandelion","flytrap","lavender","cactus","thornSun","windDandelion","ironCactus","mistTrap","sporeTrap"];
+const RECIPES=["thornSun","windDandelion","ironCactus","mistTrap","sporeTrap"];
+
+const BUGS = {
+  ant:{id:"ant",name:"개미",hp:28,speed:1.55,atk:4,coin:5,group:[4,6],color:"#3B2A20"},
+  snail:{id:"snail",name:"달팽이",hp:130,speed:0.55,atk:10,coin:7,group:[1,2]},
+  butterfly:{id:"butterfly",name:"나비",hp:90,speed:1.25,atk:8,coin:10,group:[1,2],evade:0.14},
+  grasshopper:{id:"grasshopper",name:"메뚜기",hp:80,speed:1.9,atk:9,coin:15,group:[1,2],hop:true},
+  // the earthworm is the FINAL boss only — huge, one-time, appears on the last wave alone
+  earthworm:{id:"earthworm",name:"지렁이",hp:550,speed:0.75,atk:35,coin:25,group:[1,1],boss:true,ignoreDefense:true,sizeMult:3.2},
+};
+
+/* ============================== STATE ============================== */
+const SAVE_KEY="gardenTD_save_v1";
+const TUT_KEY="gardenTD_tut_seen";
+let G=null; // main game state, created by newGame() or loadGame()
+
+function freshState(){
+  // the whole grid is open for planting from the start — no buying or unlocking tiles,
+  // it's purely a surface for dragging owned plant cards onto.
+  const grid=[];
+  for(let r=0;r<ROWS;r++){const row=[]; for(let c=0;c<COLS;c++){row.push({plant:null});} grid.push(row);}
+  return {
+    coins:10, unlockedPlants:[...STARTER_UNLOCKED], plantUpgrades:{},
+    grid, bugs:[], projectiles:[], particles:[],
+    wave:1, waveState:"prep", waveTimer:5, spawnQueue:[], spawnTimer:0,
+    gardenHP:550, gardenHPMax:550,
+    weather:"sunny", weatherTimer:35,
+    waterCharges:5, waterMax:5, waterRegenTimer:0,
+    paused:false, over:false, win:false,
+    selectedCardId:null, waterMode:false, t:0,
+    bossIndex:0,
+  };
+}
+
+function saveGame(){
+  const s=JSON.parse(JSON.stringify(G));
+  s.bugs=[]; s.projectiles=[]; s.particles=[]; // don't persist transient combat entities
+  localStorage.setItem(SAVE_KEY, JSON.stringify(s));
+}
+function hasSave(){ return !!localStorage.getItem(SAVE_KEY); }
+function loadGame(){
+  const raw=localStorage.getItem(SAVE_KEY);
+  if(!raw) return false;
+  const s=JSON.parse(raw);
+  s.bugs=[]; s.projectiles=[]; s.particles=[]; s.paused=false;
+  if(!s.plantUpgrades) s.plantUpgrades={};
+  if(s.waveState==="spawning") s.waveState="prep", s.waveTimer=5;
+  G=s;
+  return true;
+}
+function clearSave(){ localStorage.removeItem(SAVE_KEY); }
+
+/* ============================== DOM ============================== */
+const $=(id)=>document.getElementById(id);
+const cvs=$("game"), ctx=cvs.getContext("2d");
+const overlayHost=$("overlayHost");
+const trayEl=$("tray");
+let CW=0, CH=0, TS=0; // canvas css size + tile size
+const HOUSE_W_RATIO=1.35; // house reserves this many "tiles" of width on the left
+let FOX=0, FOY=0, HOUSE_X=0, HOUSE_W=0;
+
+function resizeCanvas(){
+  const rect=$("fieldWrap").getBoundingClientRect();
+  CW=rect.width; CH=rect.height;
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  cvs.width=Math.round(CW*dpr); cvs.height=Math.round(CH*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  TS=Math.min(CW/(COLS+HOUSE_W_RATIO), CH/ROWS);
+  HOUSE_W=TS*HOUSE_W_RATIO;
+  FOY=(CH-TS*ROWS)/2;
+  FOX=HOUSE_W + Math.max(0,(CW-HOUSE_W-TS*COLS)/2);
+  HOUSE_X=FOX-HOUSE_W;
+}
+window.addEventListener("resize", resizeCanvas);
+
+function gx(c){ return FOX + c*TS; }
+function gy(r){ return FOY + r*TS; }
+function tileAt(px,py){
+  const c=Math.floor((px-FOX)/TS), r=Math.floor((py-FOY)/TS);
+  if(r<0||r>=ROWS||c<0||c>=COLS) return null;
+  return [r,c];
+}
+
+/* ============================== CUTE DOODLE RENDERERS ============================== */
+// small helper
+function ell(c,x,y,rx,ry,fill,stroke,lw){c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);if(fill){c.fillStyle=fill;c.fill();}if(stroke){c.lineWidth=lw||2;c.strokeStyle=stroke;c.stroke();}}
+
+function drawBugDoodle(c,type,s,t,extra){
+  extra=extra||{};
+  const bob=Math.sin(t*6)*s*0.03;
+  c.save(); c.translate(0,bob);
+  const ink="#2E2418";
+  if(type==="ant"){
+    // two overlapping dark blobs — a simple hand-drawn cluster, not an anatomically split ant
+    c.fillStyle="#241B12";
+    ell(c,-0.06*s,0.02*s,s*0.24,s*0.19,"#241B12",null);
+    ell(c,0.20*s,0.02*s,s*0.14,s*0.11,"#3A2A1A",null);
+    // a few scratchy leg lines poking out of the mass
+    c.strokeStyle="#241B12"; c.lineWidth=s*0.025;
+    for(const a of [-2.3,-1.9,-0.5,0.5,1.9,2.3]){ c.beginPath(); c.moveTo(Math.cos(a)*0.16*s,0.02*s+Math.sin(a)*0.14*s); c.lineTo(Math.cos(a)*0.32*s,0.02*s+Math.sin(a)*0.28*s); c.stroke(); }
+    // two tiny antennae + eye dots for a touch of cute
+    c.beginPath(); c.moveTo(-0.10*s,-0.14*s); c.lineTo(-0.17*s,-0.28*s); c.moveTo(-0.02*s,-0.15*s); c.lineTo(0.04*s,-0.29*s); c.stroke();
+    c.fillStyle="#fff"; ell(c,-0.10*s,0.0*s,s*0.03,s*0.03,"#fff"); ell(c,-0.02*s,0.0*s,s*0.03,s*0.03,"#fff");
+  } else if(type==="snail"){
+    ell(c,0.08*s,0.12*s,s*0.42,s*0.22,"#EFDCC0",ink,s*0.03);
+    c.save(); c.translate(-0.05*s,-0.05*s);
+    let rr=0.30*s; c.strokeStyle=ink; c.lineWidth=s*0.03;
+    for(let k=0;k<3;k++){ c.beginPath(); c.arc(0,0,rr,Math.PI*0.15,Math.PI*1.9); c.strokeStyle=k%2? "#F2A65A":"#F7C98B"; c.lineWidth=s*0.11; c.stroke(); rr*=0.62; }
+    c.restore();
+    c.strokeStyle=ink; c.lineWidth=s*0.028;
+    c.beginPath(); c.moveTo(-0.30*s,0.02*s); c.quadraticCurveTo(-0.40*s,-0.18*s,-0.44*s,-0.26*s); c.stroke();
+    c.beginPath(); c.moveTo(-0.20*s,0.02*s); c.quadraticCurveTo(-0.24*s,-0.20*s,-0.28*s,-0.28*s); c.stroke();
+    ell(c,-0.44*s,-0.26*s,s*0.045,s*0.045,"#fff",ink,s*0.02);
+    ell(c,-0.28*s,-0.28*s,s*0.045,s*0.045,"#fff",ink,s*0.02);
+  } else if(type==="butterfly"){
+    // plain white body, bold black outline only — matches the un-colored line-art sketch
+    const flap=Math.sin(t*10)*0.35+0.65;
+    c.strokeStyle=ink; c.lineWidth=s*0.032;
+    c.save(); c.scale(1,flap);
+    ell(c,-0.24*s,-0.14*s,s*0.22,s*0.28,"#FFFFFF",ink,s*0.028);
+    ell(c,0.24*s,-0.14*s,s*0.22,s*0.28,"#FFFFFF",ink,s*0.028);
+    ell(c,-0.20*s,0.16*s,s*0.16,s*0.18,"#FFFFFF",ink,s*0.028);
+    ell(c,0.20*s,0.16*s,s*0.16,s*0.18,"#FFFFFF",ink,s*0.028);
+    c.restore();
+    ell(c,0,0,s*0.05,s*0.20,"#2E2418",null);
+    ell(c,0,-0.18*s,s*0.05,s*0.05,"#2E2418",null);
+    c.beginPath(); c.moveTo(0,-0.20*s); c.lineTo(-0.10*s,-0.32*s); c.moveTo(0,-0.20*s); c.lineTo(0.10*s,-0.32*s); c.stroke();
+  } else if(type==="grasshopper"){
+    // bold single-tone silhouette, clip-art style like the reference cell
+    const hop=extra.hop?Math.abs(Math.sin(t*8))*s*0.14:0;
+    c.translate(0,-hop);
+    c.fillStyle="#6FAA52"; c.strokeStyle=ink; c.lineWidth=s*0.028;
+    c.beginPath();
+    c.moveTo(-0.40*s,0.06*s);
+    c.quadraticCurveTo(-0.30*s,-0.12*s,0.02*s,-0.10*s);
+    c.quadraticCurveTo(0.28*s,-0.10*s,0.40*s,-0.02*s);
+    c.quadraticCurveTo(0.30*s,0.06*s,0.16*s,0.06*s);
+    c.quadraticCurveTo(-0.10*s,0.14*s,-0.40*s,0.06*s);
+    c.closePath(); c.fill(); c.stroke();
+    ell(c,0.34*s,-0.06*s,s*0.045,s*0.045,ink); // eye
+    c.beginPath(); c.moveTo(0.40*s,-0.10*s); c.lineTo(0.54*s,-0.24*s); c.stroke(); // antenna
+    // big bent hind leg — the signature silhouette shape
+    c.fillStyle="#6FAA52";
+    c.beginPath();
+    c.moveTo(0.02*s,0.02*s); c.quadraticCurveTo(-0.30*s,0.10*s,-0.34*s,0.30*s);
+    c.quadraticCurveTo(-0.20*s,0.34*s,-0.14*s,0.20*s); c.quadraticCurveTo(0.02*s,0.14*s,0.02*s,0.02*s);
+    c.closePath(); c.fill(); c.stroke();
+    c.beginPath(); c.moveTo(-0.34*s,0.30*s); c.lineTo(-0.46*s,0.42*s); c.stroke();
+    for(const dy of [0.02,0.10]){ c.beginPath(); c.moveTo(0.08*s,dy*s); c.lineTo(0.20*s,0.22*s); c.stroke(); }
+  } else if(type==="earthworm"){
+    if(extra.burrowed){
+      c.fillStyle="#8B6A45"; c.strokeStyle=ink; c.lineWidth=s*0.03;
+      ell(c,0,0.14*s,s*0.34,s*0.14,"#9C7B52",ink,s*0.025);
+      for(let i=0;i<4;i++){ c.fillStyle="rgba(120,90,50,.5)"; ell(c,(-0.3+i*0.2)*s,-0.05*s-((t*2+i)%1)*0.2*s,s*0.03,s*0.03,"rgba(120,90,50,.5)"); }
+    } else {
+      // plain tan tube, ringed segments, one darker band near the head (clitellum)
+      c.strokeStyle=ink; c.lineWidth=s*0.028;
+      const wig=Math.sin(t*5)*s*0.04;
+      c.beginPath(); c.moveTo(-0.46*s,0.10*s+wig);
+      c.quadraticCurveTo(-0.10*s,-0.06*s-wig,0.46*s,0.02*s+wig);
+      c.lineWidth=s*0.30; c.strokeStyle="#D9B892"; c.lineCap="round"; c.stroke();
+      c.lineWidth=s*0.30; c.strokeStyle="rgba(0,0,0,0)";
+      for(let i=0;i<7;i++){ const p=i/6; const px=-0.46*s+p*0.92*s, py=(0.10+wig/s)*s*(1-p)+(0.02+wig/s)*s*p - Math.sin(p*Math.PI)*s*0.08; c.strokeStyle="rgba(46,36,24,.35)"; c.lineWidth=s*0.015; c.beginPath(); c.moveTo(px,py-s*0.13); c.lineTo(px,py+s*0.13); c.stroke(); }
+      c.strokeStyle="#B23A3A"; c.lineWidth=s*0.06; c.lineCap="butt";
+      c.beginPath(); c.moveTo(0.18*s,-0.03*s+wig*0.3); c.lineTo(0.30*s,0.00*s+wig*0.3); c.stroke();
+      c.fillStyle="#2E2418"; ell(c,0.44*s,0.02*s+wig,s*0.035,s*0.035,"#2E2418"); ell(c,0.50*s,0.05*s+wig,s*0.035,s*0.035,"#2E2418");
+      // two tiny head tufts, like the little crown marks in the sketch
+      c.strokeStyle=ink; c.lineWidth=s*0.02; c.lineCap="round";
+      c.beginPath(); c.moveTo(0.40*s,-0.06*s+wig); c.lineTo(0.36*s,-0.16*s+wig); c.stroke();
+      c.beginPath(); c.moveTo(0.48*s,-0.05*s+wig); c.lineTo(0.50*s,-0.15*s+wig); c.stroke();
+    }
+  }
+  c.restore();
+}
+
+function drawPlantDoodle(c,type,s,t,phase,chomp){
+  phase=phase||0;
+  const ink="#2E2418";
+  const wob=Math.sin(t*3+phase)*0.03;
+  c.save();
+  c.strokeStyle=ink;
+  if(type==="sunflower"||type==="thornSun"){
+    c.lineWidth=s*0.05; c.strokeStyle="#4C8B5B";
+    c.beginPath(); c.moveTo(0,0.34*s); c.quadraticCurveTo(0.05*s,0.1*s,wob*s,-0.02*s); c.stroke();
+    c.save(); c.rotate(wob*0.4);
+    for(let i=0;i<8;i++){ c.save(); c.rotate(i*Math.PI/4); ell(c,0,-0.30*s,s*0.11,s*0.17,"#F4B93E",ink,s*0.02); c.restore(); }
+    ell(c,0,-0.14*s,s*0.17,s*0.17,"#7A4B22",ink,s*0.025);
+    if(type==="thornSun"){ c.strokeStyle="#B23A3A"; c.lineWidth=s*0.03; for(let i=0;i<5;i++){c.save();c.rotate(i*1.2);c.beginPath();c.moveTo(0.14*s,0);c.lineTo(0.24*s,0);c.stroke();c.restore();} }
+    c.restore();
+  } else if(type==="rose"){
+    c.lineWidth=s*0.045; c.strokeStyle="#4C8B5B";
+    c.beginPath(); c.moveTo(-0.1*s,0.34*s); c.quadraticCurveTo(0.12*s,0.15*s,-0.06*s+wob*s,-0.05*s); c.stroke();
+    for(const dx of [-0.18,0.16]){ c.beginPath(); c.moveTo(dx*0.6,0.1*s); c.lineTo(dx,0.02*s); c.strokeStyle="#4C8B5B"; c.stroke(); ell(c,dx*s,0.02*s,s*0.09,s*0.09,"#79A96B",ink,s*0.018);}
+    for(let k=0;k<3;k++){ c.save(); c.rotate(k*2.1); ell(c,wob*s,-0.06*s,s*0.13,s*0.13,k%2?"#E0668B":"#EE86A6",ink,s*0.02); c.restore(); }
+  } else if(type==="dandelion"||type==="sporeTrap"){
+    c.lineWidth=s*0.045; c.strokeStyle="#4C8B5B";
+    c.beginPath(); c.moveTo(0,0.34*s); c.quadraticCurveTo(0.06*s,0.1*s,wob*s,-0.06*s); c.stroke();
+    for(let i=0;i<14;i++){ const a=i/14*Math.PI*2; ell(c,wob*s+Math.cos(a)*0.17*s,-0.22*s+Math.sin(a)*0.17*s,s*0.03,s*0.03,"#FBF7EC",null); }
+    ell(c,wob*s,-0.22*s,s*0.15,s*0.15,"rgba(255,255,255,.5)",ink,s*0.018);
+    if(type==="sporeTrap"){ ell(c,wob*s,-0.22*s,s*0.15,s*0.15,"rgba(214,180,240,.55)",ink,s*0.018); }
+  } else if(type==="flytrap"||type==="mistTrap"){
+    c.lineWidth=s*0.05; c.strokeStyle="#4C8B5B";
+    c.beginPath(); c.moveTo(0,0.34*s); c.lineTo(0,0.02*s); c.stroke();
+    const open=chomp>0? 0.06 : 0.5+Math.sin(t*2)*0.5;
+    c.save(); c.translate(0,-0.02*s);
+    c.rotate(-open*0.5); ell(c,0.10*s,-0.05*s,s*0.20,s*0.13,type==="mistTrap"?"#8FA8D6":"#6FBE7E",ink,s*0.022);
+    c.restore();
+    c.save(); c.translate(0,-0.02*s); c.rotate(open*0.5); ell(c,0.10*s,0.05*s,s*0.20,s*0.13,type==="mistTrap"?"#7C97C7":"#5AA968",ink,s*0.022); c.restore();
+  } else if(type==="lavender"){
+    c.lineWidth=s*0.04; c.strokeStyle="#4C8B5B";
+    for(const dx of [-0.12,0,0.12]){ c.beginPath(); c.moveTo(dx*s,0.34*s); c.lineTo(dx*s+wob*s,-0.12*s); c.stroke();
+      for(let i=0;i<4;i++){ ell(c,dx*s+wob*s+(Math.random()>2?1:0),-0.12*s-i*0.08*s,s*0.06,s*0.05,"#9B7FD4",ink,s*0.015); } }
+  } else if(type==="cactus"||type==="ironCactus"){
+    c.lineWidth=s*0.045; c.strokeStyle=ink;
+    ell(c,0,0.05*s,s*0.24,s*0.30,type==="ironCactus"?"#3F8E52":"#5AA968",ink,s*0.03);
+    ell(c,-0.20*s,-0.02*s,s*0.10,s*0.16,"#5AA968",ink,s*0.025);
+    ell(c,0.20*s,0.10*s,s*0.10,s*0.16,"#5AA968",ink,s*0.025);
+    c.strokeStyle="#2E4A2E"; c.lineWidth=s*0.015;
+    for(let i=0;i<6;i++){ c.beginPath(); c.moveTo(-0.1*s+i*0.04*s,-0.18*s); c.lineTo(-0.1*s+i*0.04*s,0.28*s); c.stroke(); }
+    ell(c,0,-0.24*s,s*0.06,s*0.06,"#E0668B",ink,s*0.015);
+    if(type==="ironCactus"){ c.strokeStyle="#8A8F98"; c.lineWidth=s*0.02; c.beginPath(); c.ellipse(0,0.05*s,s*0.30,s*0.36,0,0,Math.PI*2); c.stroke(); }
+  } else if(type==="windDandelion"){
+    drawPlantDoodle(c,"dandelion",s,t,phase);
+    c.strokeStyle="#7FB3D6"; c.lineWidth=s*0.02;
+    for(let i=0;i<3;i++){ c.beginPath(); c.moveTo(0.2*s+i*0.05*s,-0.22*s); c.lineTo(0.36*s+i*0.05*s,-0.22*s-0.05*s); c.stroke(); }
+  }
+  c.restore();
+}
+
+function cardIconCanvas(container,type){
+  const c=document.createElement("canvas"); c.width=88; c.height=88;
+  container.appendChild(c);
+  const cx=c.getContext("2d");
+  function draw(){ cx.clearRect(0,0,88,88); cx.save(); cx.translate(44,50); drawPlantDoodle(cx,type,64,performance.now()/1000,0); cx.restore(); }
+  draw();
+  c._redraw=draw;
+  return c;
+}
+
+/* ============================== TRAY ============================== */
+function renderTray(){
+  trayEl.innerHTML="";
+  PLANT_ORDER.forEach(id=>{
+    const def=PLANTS[id];
+    const owned=G.unlockedPlants.includes(id);
+    const div=document.createElement("div");
+    div.className="card"+(owned?"":" locked")+(G.selectedCardId===id?" selected":"");
+    div.dataset.id=id;
+    const iconWrap=document.createElement("div");
+    div.appendChild(iconWrap);
+    const nm=document.createElement("div"); nm.className="cname"; nm.textContent=def.name; div.appendChild(nm);
+    const cst=document.createElement("div"); cst.className="ccost"; cst.textContent=def.cost+"C"; div.appendChild(cst);
+    trayEl.appendChild(div);
+    cardIconCanvas(iconWrap,id);
+    if(owned){
+      div.addEventListener("pointerdown",(e)=>startCardDrag(e,div,id));
+    }
+  });
+}
+
+/* drag from card to field */
+let dragState=null;
+function startCardDrag(e,cardEl,id){
+  e.preventDefault();
+  const ghost=document.createElement("div"); ghost.className="drag-ghost";
+  const gc=document.createElement("canvas"); gc.width=88; gc.height=88; gc.style.width="100%"; gc.style.height="100%";
+  ghost.appendChild(gc); document.body.appendChild(ghost);
+  const gcx=gc.getContext("2d"); gcx.translate(44,50); drawPlantDoodle(gcx,id,64,performance.now()/1000,0);
+  ghost.style.left=e.clientX+"px"; ghost.style.top=e.clientY+"px";
+  cardEl.classList.add("dragging");
+  dragState={id,ghost};
+  function move(ev){ ghost.style.left=ev.clientX+"px"; ghost.style.top=ev.clientY+"px"; }
+  function up(ev){
+    window.removeEventListener("pointermove",move); window.removeEventListener("pointerup",up);
+    cardEl.classList.remove("dragging"); ghost.remove(); dragState=null;
+    const rect=cvs.getBoundingClientRect();
+    if(ev.clientX>=rect.left&&ev.clientX<=rect.right&&ev.clientY>=rect.top&&ev.clientY<=rect.bottom){
+      const tile=tileAt(ev.clientX-rect.left, ev.clientY-rect.top);
+      if(tile) tryPlant(tile[0],tile[1],id);
+    }
+  }
+  window.addEventListener("pointermove",move); window.addEventListener("pointerup",up);
+}
+
+function tryPlant(r,c,id){
+  const cell=G.grid[r][c];
+  const def=PLANTS[id];
+  if(cell.plant){ showToast("이미 식물이 심어져 있어요."); return; }
+  if(!G.unlockedPlants.includes(id)){ showToast("상점에서 먼저 구매해야 해요."); return; }
+  if(G.coins<def.cost){ showToast("코인이 부족해요."); return; }
+  G.coins-=def.cost;
+  const hpMax=effHpMax(def);
+  cell.plant={type:id,hp:hpMax,hpMax,cd:0,ultCd:6,vigor:100,trapped:null,phase:Math.random()*10};
+  spawnParticles(gx(c)+TS/2,gy(r)+TS/2,"#8FCB7C",10);
+  updateHUD();
+}
+
+/* ============================== FIELD INTERACTION ============================== */
+let pressInfo=null;
+cvs.addEventListener("pointerdown",(e)=>{
+  const rect=cvs.getBoundingClientRect();
+  const x=e.clientX-rect.left, y=e.clientY-rect.top;
+  pressInfo={x,y,t:performance.now(),longFired:false};
+  pressInfo.timer=setTimeout(()=>{
+    if(!pressInfo) return;
+    pressInfo.longFired=true;
+    handleTileLongPress(x,y);
+  },520);
+});
+cvs.addEventListener("pointerup",(e)=>{
+  if(!pressInfo) return;
+  clearTimeout(pressInfo.timer);
+  if(!pressInfo.longFired){
+    const rect=cvs.getBoundingClientRect();
+    handleTileTap(e.clientX-rect.left, e.clientY-rect.top);
+  }
+  pressInfo=null;
+});
+cvs.addEventListener("contextmenu",(e)=>{
+  e.preventDefault();
+  const rect=cvs.getBoundingClientRect();
+  handleTileSell(e.clientX-rect.left, e.clientY-rect.top);
+});
+
+function handleTileTap(x,y){
+  const tile=tileAt(x,y); if(!tile) return;
+  const [r,c]=tile; const cell=G.grid[r][c];
+  if(G.waterMode){
+    if(cell.plant){ waterPlant(r,c); } else showToast("물을 줄 식물이 없어요.");
+    return;
+  }
+  if(cell.plant){ openPlantInfo(r,c,x,y); }
+}
+function handleTileLongPress(x,y){
+  handleTileSell(x,y);
+}
+function handleTileSell(x,y){
+  const tile=tileAt(x,y); if(!tile) return;
+  const [r,c]=tile; const cell=G.grid[r][c];
+  if(cell.plant) openSellConfirm(r,c,x,y);
+}
+function waterPlant(r,c){
+  if(G.waterCharges<=0){ showToast("물뿌리개 충전이 없어요."); return; }
+  const cell=G.grid[r][c];
+  cell.plant.vigor=100; G.waterCharges--; updateHUD();
+  spawnParticles(gx(c)+TS/2,gy(r)+TS/2,"#7FB3D6",8);
+  showToast("물을 줬어요! 💧");
+}
+function openPlantInfo(r,c,x,y){
+  const cell=G.grid[r][c]; const def=PLANTS[cell.plant.type];
+  const p=cell.plant;
+  const wiltTxt = p.vigor<40 ? `<div style="color:var(--danger)">⚠ 시들었어요 (효과 절반)</div>`:"";
+  showPopup(x,y,`<b>${def.name}</b><div class="d" style="color:var(--ink-soft);font-size:11px;margin-bottom:4px">${def.desc}</div>
+    <div class="bar"><i style="width:${Math.round(p.hp/p.hpMax*100)}%"></i></div>
+    <div style="font-size:11px">체력 ${Math.round(p.hp)}/${p.hpMax} · 물기운 ${Math.round(p.vigor)}%</div>${wiltTxt}
+    <button class="btn danger" id="popSell">판매 (+${Math.floor(def.cost*0.6)}C)</button>`,()=>{
+    $("popSell").onclick=()=>{ sellPlant(r,c); closePopup(); };
+  });
+}
+function openSellConfirm(r,c,x,y){
+  const cell=G.grid[r][c]; const def=PLANTS[cell.plant.type];
+  showPopup(x,y,`<b>${def.name} 판매할까요?</b><div class="d" style="font-size:11px">우클릭/길게 눌러서 판매</div><button class="btn danger" id="popSell2">+${Math.floor(def.cost*0.6)}C 받고 판매</button>`,()=>{
+    $("popSell2").onclick=()=>{ sellPlant(r,c); closePopup(); };
+  });
+}
+function sellPlant(r,c){
+  const cell=G.grid[r][c]; const def=PLANTS[cell.plant.type];
+  G.coins+=Math.floor(def.cost*0.6); cell.plant=null; updateHUD();
+}
+let popupEl=null;
+function showPopup(x,y,html,after){
+  closePopup();
+  popupEl=document.createElement("div"); popupEl.className="info-pop"; popupEl.innerHTML=html;
+  const wrap=$("fieldWrap"); wrap.appendChild(popupEl);
+  let left=x+10, top=y+10;
+  if(left+180>CW) left=x-180; if(top+120>CH) top=y-120;
+  popupEl.style.left=Math.max(4,left)+"px"; popupEl.style.top=Math.max(4,top)+"px";
+  document.addEventListener("pointerdown",popupOutside,true);
+  if(after) after();
+}
+function popupOutside(e){ if(popupEl && !popupEl.contains(e.target)) closePopup(); }
+function closePopup(){ if(popupEl){ popupEl.remove(); popupEl=null; document.removeEventListener("pointerdown",popupOutside,true);} }
+
+/* ============================== TOAST ============================== */
+let toastTimer=null;
+function showToast(msg){
+  const t=$("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("show"),1800);
+}
+
+/* ============================== WAVES ============================== */
+function buildWaveQueue(wave){
+  const q=[];
+  const mult=1+(wave-1)*0.16; // bugs get noticeably tougher every wave
+  const isFinalWave = wave>=TOTAL_WAVES;
+  const baseN=Math.round(2.5+wave*0.85); // starts at 2~3 bugs, grows gradually each wave
+  // bug types unlock one by one as waves climb — waves 1-3 are ants only
+  const weights={ ant: Math.max(1, 5-wave*0.3) };
+  if(wave>=4) weights.snail = Math.min(4, 0.4+(wave-3)*0.3);
+  if(wave>=6) weights.butterfly = Math.min(4, 0.3+(wave-5)*0.3);
+  if(wave>=8) weights.grasshopper = Math.min(4, 0.3+(wave-7)*0.3);
+  const pool=[];
+  for(const type in weights){ const n=Math.max(1,Math.round(weights[type]*4)); for(let i=0;i<n;i++) pool.push(type); }
+  let n=baseN;
+  let t=0;
+  while(n>0){
+    const type=pool[Math.floor(Math.random()*pool.length)];
+    const g=BUGS[type].group; const cnt=Math.min(n, g[0]+Math.floor(Math.random()*(g[1]-g[0]+1)));
+    for(let i=0;i<cnt;i++){ q.push({type,t:t+i*0.32,mult}); }
+    n-=cnt; t+=Math.max(0.5,1.1-wave*0.03); // spawns pack in tighter as waves climb
+  }
+  // the earthworm is the FINAL boss — it never shows up mid-run, only alone at the very end
+  if(isFinalWave){ q.push({type:"earthworm",t:t+2,mult}); }
+  q.sort((a,b)=>a.t-b.t);
+  return q;
+}
+function startWave(){
+  G.waveState="spawning"; G.spawnQueue=buildWaveQueue(G.wave); G.spawnTimer=0;
+  rollWeather();
+  showToast(`웨이브 ${G.wave} 시작!`);
+}
+function rollWeather(){
+  const r=Math.random();
+  if(G.wave>=3 && r<0.15){ G.weather="drought"; }
+  else if(r<0.35){ G.weather="rain"; }
+  else { G.weather="sunny"; }
+  G.weatherTimer=30+Math.random()*10;
+  if(G.weather==="rain"){ G.waterCharges=G.waterMax; }
+  updateWeatherUI();
+}
+function updateWeatherUI(){
+  const map={sunny:["☀️","맑음","sunny"],rain:["🌧️","비","rain"],drought:["🌵","가뭄","drought"]};
+  const [icon,label,cls]=map[G.weather];
+  $("weatherIcon").textContent=icon;
+  const tag=$("weatherTag"); tag.textContent=label; tag.className="weather-tag "+cls;
+}
+
+/* ============================== COMBAT / SIM ============================== */
+function laneY(row){ return gy(row)+TS/2; }
+function colX(col){ return gx(col)+TS/2; }
+
+function spawnBug(type,mult){
+  const row=Math.floor(Math.random()*ROWS);
+  const def=BUGS[type];
+  G.bugs.push({
+    type,row, x:COLS+0.4, hp:def.hp*mult, hpMax:def.hp*mult, speed:def.speed*(0.85+Math.random()*0.3),
+    atk:def.atk*mult, slow:0, trapped:0, burrowT:0, burrowed:false, hopT:Math.random()*2, evadeCd:0,
+  });
+}
+
+function updatePlants(dt){
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    const cell=G.grid[r][c]; const p=cell.plant; if(!p) continue;
+    const def=PLANTS[p.type];
+    // vigor / weather
+    if(G.weather==="drought") p.vigor=Math.max(0,p.vigor-dt*3.2);
+    else if(G.weather==="rain") p.vigor=Math.min(100,p.vigor+dt*8);
+    else p.vigor=Math.min(100,p.vigor+dt*1.2);
+    const wilted=p.vigor<40;
+    const potency = wilted?0.5:1;
+
+    if(def.kind==="support"){
+      p.cd-=dt; p.ultCd-=dt;
+      if(p.cd<=0){ p.cd=def.genPeriod; G.coins+=Math.round(def.genAmount*potency); spawnParticles(gx(c)+TS/2,gy(r)+TS*0.25,"#F0A63E",6); updateHUD(); }
+      if(p.ultCd<=0){ p.ultCd=def.genPeriod*2.5; triggerUlt(r,c); }
+      continue;
+    }
+    p.cd-=dt; p.ultCd-=dt;
+    if(p.attackAnimT>0) p.attackAnimT-=dt;
+    if(p.chompT>0) p.chompT-=dt;
+    const targets=findTargets(r,c,def,def.maxTargets||1);
+    if(p.cd<=0 && targets.length){
+      p.cd=1/def.atkSpeed;
+      for(const tgt of targets) doAttack(r,c,p,def,tgt,potency,false);
+    }
+    if(p.ultCd<=0){ p.ultCd=6+def.cost*0.35; if(targets.length) triggerUlt(r,c,potency); }
+  }
+}
+function findTargets(r,c,def,maxN){
+  const rangeTiles = def.range>=99? COLS : def.range;
+  const found=[];
+  for(const b of G.bugs){
+    if(b.burrowed) continue;
+    const rowDiff=Math.abs(b.row-r);
+    if(rowDiff>1) continue; // straight ahead, or one row diagonally up/down
+    const effRange = rowDiff===0 ? rangeTiles : Math.max(1,rangeTiles-1); // diagonal reach is a touch shorter
+    const dist=b.x-c;
+    if(dist< -0.3) continue;
+    if(dist>effRange+0.6) continue;
+    found.push(b);
+  }
+  found.sort((a,b)=> (Math.abs(a.row-r)-Math.abs(b.row-r)) || (a.x-b.x)); // own lane first, then closest to the house
+  return found.slice(0,maxN);
+}
+function doAttack(r,c,p,def,bug,potency,isUlt){
+  const dmg=effAtk(def)*potency*(isUlt?2.2:1);
+  const color=ULT_COLOR[def.id]||"#8FCB7C";
+  p.attackAnimT=0.22;
+  if(def.kind==="ranged"){
+    G.projectiles.push({x:colX(c),y:laneY(r),row:r,target:bug,speed:def.projSpeed,dmg,type:def.id,effect:def});
+    spawnShockwave(colX(c),laneY(r),color,TS*0.5,0.22);
+  } else {
+    applyDamage(bug,dmg,def);
+    spawnParticles(colX(bug.x),laneY(bug.row),"#E0668B",5,true);
+    spawnSwipe(colX(c),laneY(r),colX(bug.x),laneY(bug.row),color);
+    if(def.kind==="trap"){ bug.trapped=def.trapDuration; p.chompT=0.3; }
+    if(def.kind==="control"){ bug.slow=Math.max(bug.slow,def.slowDuration); bug.x+=def.knockback*0.5; spawnParticles(colX(bug.x),laneY(bug.row),"#9B7FD4",7,true); }
+  }
+  flashTile(r,c);
+}
+function applyDamage(bug,dmg,def){
+  if(BUGS[bug.type].ignoreDefense && bug.burrowed) return;
+  if(BUGS[bug.type].evade && Math.random()<BUGS[bug.type].evade) return;
+  bug.hp-=dmg;
+}
+function triggerUlt(r,c,potency){
+  potency=potency||1;
+  const plant=G.grid[r][c].plant, id=plant.type, def=PLANTS[id];
+  const color=ULT_COLOR[id]||"#F3B85C";
+  const px=gx(c)+TS/2, py=gy(r)+TS*0.55;
+  flashField(color);
+  spawnMoveText(px,py-TS*0.4,ultName(id),color);
+  spawnShockwave(px,py,color,TS*3.4,0.6);
+  spawnShockwave(px,py,"#FFFFFF",TS*1.6,0.35);
+
+  if(def.kind==="support"){
+    triggerScreenShake(0.35);
+    for(const [dr,dc] of [[0,0],[-1,0],[1,0],[0,-1],[0,1]]){
+      const nr=r+dr,nc=c+dc; if(nr<0||nr>=ROWS||nc<0||nc>=COLS) continue;
+      const np=G.grid[nr][nc].plant; if(np) np.buffT=6;
+    }
+    G.coins+=6; updateHUD();
+    spawnParticles(px,py,"#F3B85C",28,true);
+    return;
+  }
+  const targets=G.bugs.filter(b=>Math.abs(b.row-r)<=1 && !b.burrowed && b.x>=c-0.3 && b.x<=c+(def.range>=99?COLS:def.range)+0.6);
+  if(def.kind==="control"){
+    triggerScreenShake(0.9);
+    spawnShockwave(colX(c+1.5),laneY(r),color,TS*(COLS+1),0.7);
+    for(const b of G.bugs){ if(b.burrowed) continue; b.slow=Math.max(b.slow,def.slowDuration+1.5); b.x+=1.1; }
+    spawnParticles(CW*0.6,laneY(r),"#9B7FD4",40,true);
+  } else if(def.kind==="wall"){
+    triggerScreenShake(0.7);
+    G.grid[r][c].plant.invuln=2.2;
+    for(const b of targets) applyDamage(b,effAtk(def)*3*potency,def);
+    spawnParticles(px,py,"#F3B85C",26,true);
+  } else if(def.kind==="trap"){
+    triggerScreenShake(0.5);
+    for(const b of targets.slice(0,3)){ applyDamage(b,effAtk(def)*3*potency,def); b.trapped=Math.max(b.trapped,def.trapDuration+1); }
+    spawnParticles(colX(c+1),laneY(r),"#6FBE7E",24,true);
+  } else {
+    triggerScreenShake(0.45);
+    for(const b of targets){ applyDamage(b, effAtk(def)*1.5*potency, def); }
+    spawnParticles(colX(c+2),laneY(r),color,24,true);
+  }
+}
+function flashTile(r,c){ /* subtle: handled visually via particles only */ }
+function flashField(color){
+  const f=$("fieldFlash"); f.style.background=color||"#F0A63E";
+  f.style.transition="none"; f.style.opacity=".4";
+  requestAnimationFrame(()=>{ f.style.transition="opacity .6s"; f.style.opacity="0"; });
+}
+
+function updateProjectiles(dt){
+  for(let i=G.projectiles.length-1;i>=0;i--){
+    const pr=G.projectiles[i];
+    if(!G.bugs.includes(pr.target) || pr.target.hp<=0){ G.projectiles.splice(i,1); continue; }
+    const tx=colX(pr.target.x), ty=laneY(pr.target.row);
+    const dx=tx-pr.x, dy=ty-pr.y, dist=Math.hypot(dx,dy);
+    const step=pr.speed*TS*dt;
+    if(dist<=step){
+      applyDamage(pr.target,pr.dmg,pr.effect);
+      if(pr.effect.kind==="ranged" && pr.effect.knockback) pr.target.x+=pr.effect.knockback;
+      if(pr.effect.rootChance && Math.random()<pr.effect.rootChance) pr.target.slow=Math.max(pr.target.slow,pr.effect.rootDuration);
+      spawnParticles(tx,ty,"#F7C98B",6);
+      G.projectiles.splice(i,1);
+    } else { pr.x+=dx/dist*step; pr.y+=dy/dist*step; }
+  }
+}
+
+function updateBugs(dt){
+  for(let i=G.bugs.length-1;i>=0;i--){
+    const b=G.bugs[i]; const def=BUGS[b.type];
+    if(b.hp<=0){ G.coins+=def.coin; spawnParticles(colX(b.x),laneY(b.row),"#4C8B5B",10); G.bugs.splice(i,1); updateHUD(); continue; }
+    if(b.trapped>0){ b.trapped-=dt; continue; }
+    if(def.ignoreDefense){
+      b.burrowT-=dt;
+      if(b.burrowT<=0){ b.burrowed=!b.burrowed; b.burrowT=b.burrowed?2.2:3.2; }
+    }
+    let sp=b.speed;
+    if(b.slow>0){ b.slow-=dt; sp*=0.5; }
+    if(def.hop){ b.hopT-=dt; }
+    sp*= b.burrowed?1.6:1;
+    b.x-=sp*dt;
+    if(b.x<= -0.3){
+      G.gardenHP=Math.max(0,G.gardenHP-def.atk);
+      hitHouse(def.atk);
+      G.bugs.splice(i,1); updateHUD();
+      if(G.gardenHP<=0){ triggerGameOver(false); return; }
+      continue;
+    }
+    // fight plant blocking (wall kind) at its tile
+    const c=Math.floor(b.x+0.5);
+    if(c>=0&&c<COLS){
+      const cell=G.grid[b.row][c];
+      if(cell.plant && b.x-c<0.55 && b.x-c>-0.1 && !b.burrowed){
+        const pdef=PLANTS[cell.plant.type];
+        if(pdef.kind==="wall"|| (def.boss===undefined && b.x-c<0.15)){
+          b.x=c+0.15;
+          cell.plant.atkCd=(cell.plant.atkCd||0)-dt;
+          if(cell.plant.atkCd<=0){ cell.plant.atkCd=1;
+            if(!cell.plant.invuln||cell.plant.invuln<=0) cell.plant.hp-=def.atk;
+            applyDamage(b, effAtk(pdef)*0.5, pdef);
+          }
+        }
+      }
+    }
+  }
+  // clean dead plants
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){ const cell=G.grid[r][c]; if(cell.plant){ if(cell.plant.invuln>0) cell.plant.invuln-=dt; if(cell.plant.buffT>0) cell.plant.buffT-=dt; if(cell.plant.hp<=0){ cell.plant=null; } } }
+}
+
+/* ============================== PARTICLES ============================== */
+function spawnParticles(x,y,color,n,big){
+  for(let i=0;i<n;i++){ G.particles.push({x,y,vx:(Math.random()-0.5)*(big?220:120),vy:(Math.random()-0.9)*(big?220:120),life:big?0.7:0.45,age:0,color,size:big?4:2.4}); }
+}
+function updateParticles(dt){
+  for(let i=G.particles.length-1;i>=0;i--){ const p=G.particles[i]; p.age+=dt; if(p.age>p.life){G.particles.splice(i,1);continue;} p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=260*dt; }
+}
+
+/* ============================== ULTIMATE FX (screenshake / shockwaves / move-name pop / house hit) ============================== */
+let FX_RINGS=[], FX_TEXTS=[], FX_SWIPES=[], shakeMag=0, houseFlashT=0, houseShakeT=0, slowMoT=0;
+const ULT_COLOR={sunflower:"#F3B85C",rose:"#E0668B",dandelion:"#FBF7EC",flytrap:"#4C8B5B",lavender:"#9B7FD4",
+  cactus:"#8FCB7C",thornSun:"#F3B85C",windDandelion:"#7FB3D6",ironCactus:"#D7DBE0",mistTrap:"#8FA8D6",sporeTrap:"#C9A6E0"};
+function ultName(id){ return PLANTS[id].ult.split(" — ")[0]; }
+function spawnShockwave(x,y,color,maxR,life){ FX_RINGS.push({x,y,color,age:0,life:life||0.55,maxR:maxR||TS*3.2}); }
+function spawnMoveText(x,y,text,color){ FX_TEXTS.push({x,y,text,color,age:0,life:1.15}); }
+function spawnSwipe(x1,y1,x2,y2,color){ FX_SWIPES.push({x1,y1,x2,y2,color,age:0,life:0.22}); }
+function triggerScreenShake(mag){ shakeMag=Math.max(shakeMag,mag); slowMoT=Math.max(slowMoT,0.09); }
+function updateFX(rawDt){
+  shakeMag=Math.max(0,shakeMag-rawDt*3.2);
+  houseFlashT=Math.max(0,houseFlashT-rawDt*2.2);
+  houseShakeT=Math.max(0,houseShakeT-rawDt*2.6);
+  for(let i=FX_RINGS.length-1;i>=0;i--){ const f=FX_RINGS[i]; f.age+=rawDt; if(f.age>f.life) FX_RINGS.splice(i,1); }
+  for(let i=FX_TEXTS.length-1;i>=0;i--){ const f=FX_TEXTS[i]; f.age+=rawDt; if(f.age>f.life) FX_TEXTS.splice(i,1); }
+  for(let i=FX_SWIPES.length-1;i>=0;i--){ const f=FX_SWIPES[i]; f.age+=rawDt; if(f.age>f.life) FX_SWIPES.splice(i,1); }
+}
+function drawFX(){
+  for(const f of FX_SWIPES){
+    const p=f.age/f.life;
+    ctx.save(); ctx.globalAlpha=Math.max(0,1-p);
+    ctx.strokeStyle=f.color; ctx.lineWidth=Math.max(1,5*(1-p*0.6)); ctx.lineCap="round";
+    const mx=(f.x1+f.x2)/2, my=(f.y1+f.y2)/2-10*(1-p*0.5);
+    ctx.beginPath(); ctx.moveTo(f.x1,f.y1); ctx.quadraticCurveTo(mx,my,f.x2,f.y2); ctx.stroke();
+    ctx.restore();
+  }
+  for(const f of FX_RINGS){
+    const p=f.age/f.life, r=f.maxR*Math.pow(p,0.5);
+    ctx.save(); ctx.globalAlpha=Math.max(0,1-p);
+    ctx.strokeStyle=f.color; ctx.lineWidth=Math.max(1,6*(1-p));
+    ctx.beginPath(); ctx.arc(f.x,f.y,r,0,Math.PI*2); ctx.stroke();
+    if(p<0.35){ ctx.globalAlpha=Math.max(0,0.4-p); ctx.fillStyle=f.color; ctx.beginPath(); ctx.arc(f.x,f.y,r*0.6,0,Math.PI*2); ctx.fill(); }
+    ctx.restore();
+  }
+  for(const f of FX_TEXTS){
+    const p=f.age/f.life;
+    const rise=p*TS*0.9, scale=p<0.18? (p/0.18) : 1;
+    ctx.save();
+    ctx.globalAlpha=Math.max(0,1-Math.max(0,p-0.55)/0.45);
+    ctx.translate(f.x,f.y-rise); ctx.scale(scale,scale);
+    ctx.font=`900 ${Math.max(13,TS*0.24)}px "Jua"`; ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.lineWidth=4; ctx.strokeStyle="rgba(30,20,10,.55)"; ctx.strokeText(f.text,0,0);
+    ctx.fillStyle=f.color; ctx.fillText(f.text,0,0);
+    ctx.restore();
+  }
+}
+function hitHouse(dmg){
+  houseFlashT=1; houseShakeT=1; triggerScreenShake(0.4);
+  spawnParticles(HOUSE_X+HOUSE_W*0.5, FOY+TS*ROWS*0.5, "#D2523E", 14, true);
+}
+
+/* ============================== MAIN LOOP ============================== */
+let lastT=performance.now();
+function loop(now){
+  const rawDt=Math.min(0.05,(now-lastT)/1000); lastT=now;
+  let dt=rawDt;
+  if(slowMoT>0){ dt=rawDt*0.22; slowMoT=Math.max(0,slowMoT-rawDt); }
+  updateFX(rawDt);
+  if(!G.paused && !G.over){
+    G.t+=dt;
+    if(G.waveState==="prep"){
+      G.waveTimer-=dt;
+      if(G.waveTimer<=0) startWave();
+    } else if(G.waveState==="spawning"){
+      G.spawnTimer+=dt;
+      while(G.spawnQueue.length && G.spawnQueue[0].t<=G.spawnTimer){ const s=G.spawnQueue.shift(); spawnBug(s.type,s.mult); }
+      if(!G.spawnQueue.length) G.waveState="clearing";
+    } else if(G.waveState==="clearing"){
+      if(G.bugs.length===0){
+        if(G.wave>=TOTAL_WAVES){ triggerGameOver(true); }
+        else {
+          const bonus=6;
+          G.coins+=bonus; showToast(`웨이브 ${G.wave} 클리어! +${bonus}C 🌟`);
+          G.wave++; G.waveState="prep"; G.waveTimer=5; updateHUD();
+        }
+      }
+    }
+    G.weatherTimer-=dt; if(G.weatherTimer<=0) rollWeather();
+    if(G.waterRegenTimer<=0 && G.waterCharges<G.waterMax){ G.waterCharges++; G.waterRegenTimer=14; } else G.waterRegenTimer-=dt;
+    updatePlants(dt); updateProjectiles(dt); updateBugs(dt); updateParticles(dt);
+    tickHUDTimers();
+  }
+  render(now/1000);
+  requestAnimationFrame(loop);
+}
+
+/* ============================== HOUSE (the thing being defended) ============================== */
+function drawHouse(t){
+  // the 집 (house) — this is what the bugs are actually attacking. If it falls, the game ends.
+  const topY=FOY, fullH=TS*ROWS, midX=HOUSE_X+HOUSE_W/2;
+  const shk=houseShakeT>0 ? (Math.random()-0.5)*9*houseShakeT : 0;
+
+  // thin garden fence for the rest of the boundary, so every lane still reads as "guarding home"
+  ctx.save(); ctx.translate(shk,0);
+  ctx.strokeStyle="#B79A63"; ctx.lineWidth=2.5;
+  const postX=HOUSE_X+HOUSE_W*0.96;
+  for(let i=0;i<ROWS*2;i++){ const py=topY+(i+0.15)*(fullH/(ROWS*2)); ctx.beginPath(); ctx.moveTo(postX,py); ctx.lineTo(postX,py+fullH/(ROWS*2)*0.6); ctx.stroke(); }
+  ctx.beginPath(); ctx.moveTo(postX,topY); ctx.lineTo(postX,topY+fullH); ctx.lineWidth=2; ctx.strokeStyle="#8B7345"; ctx.stroke();
+  ctx.restore();
+
+  const w=HOUSE_W*0.82, hh=fullH*0.5, cx=midX+shk, cy=topY+fullH*0.5;
+  ctx.save(); ctx.translate(cx,cy);
+  // low raised bed silhouette, close to the loose pencil sketch — a soft rounded box, no roof/door
+  ctx.fillStyle="#DCC9A0"; ctx.strokeStyle="#2E2418"; ctx.lineWidth=3.5;
+  roundRect2(-w*0.5,-hh*0.42,w,hh*0.84,w*0.18); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle="#B79A63"; ctx.lineWidth=1.6;
+  ctx.beginPath(); ctx.moveTo(-w*0.5,-hh*0.06); ctx.lineTo(w*0.5,-hh*0.06); ctx.stroke();
+  // a mini sunflower + a couple corn stalks growing in the bed, plus a loose leaf scribble
+  ctx.lineCap="round";
+  const sway=Math.sin(t*2)*2;
+  // corn (two stalks)
+  [[-0.30,1],[-0.20,-1]].forEach(([mx,dir],i)=>{
+    const bx=mx*w, topY=-hh*0.30-w*0.05*i;
+    ctx.strokeStyle="#5A9B4A"; ctx.lineWidth=w*0.035;
+    ctx.beginPath(); ctx.moveTo(bx,-hh*0.05); ctx.lineTo(bx+sway*0.4,topY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bx,-hh*0.16); ctx.quadraticCurveTo(bx+dir*w*0.14,-hh*0.20,bx+dir*w*0.20,-hh*0.10); ctx.stroke();
+    ctx.fillStyle="#F0C94A"; ctx.strokeStyle="#8B6A1E";
+    ell(ctx,bx+sway*0.4,topY-w*0.05,w*0.045,w*0.11,"#F0C94A","#8B6A1E",1.4);
+    ctx.strokeStyle="rgba(139,106,30,.6)"; ctx.lineWidth=w*0.01;
+    for(let k=-1;k<=1;k++){ ctx.beginPath(); ctx.moveTo(bx+sway*0.4-w*0.03,topY-w*0.1+k*w*0.03); ctx.lineTo(bx+sway*0.4+w*0.03,topY-w*0.1+k*w*0.03); ctx.stroke(); }
+  });
+  // mini sunflower
+  const sx=0.12*w, sy=-hh*0.24;
+  ctx.strokeStyle="#4C8B5B"; ctx.lineWidth=w*0.03; ctx.beginPath(); ctx.moveTo(sx,-hh*0.02); ctx.lineTo(sx+sway*0.3,sy+w*0.06); ctx.stroke();
+  for(let i=0;i<7;i++){ const a=i/7*Math.PI*2; ell(ctx,sx+sway*0.3+Math.cos(a)*w*0.06,sy+Math.sin(a)*w*0.06,w*0.035,w*0.05,"#F4B93E","#2E2418",1); }
+  ell(ctx,sx+sway*0.3,sy,w*0.05,w*0.05,"#7A4B22","#2E2418",1.4);
+  // one loose leaf scribble on the right for texture
+  ctx.strokeStyle="#E0668B"; ctx.lineWidth=w*0.045;
+  ctx.beginPath(); ctx.moveTo(0.32*w,-hh*0.10); ctx.quadraticCurveTo(0.32*w+sway,-hh*0.24,0.37*w,-hh*0.30); ctx.stroke();
+  if(houseFlashT>0){ ctx.globalAlpha=houseFlashT*0.5; ctx.fillStyle="#D2523E"; roundRect2(-w*0.56,-hh*0.48,w*1.12,hh*0.96,w*0.18); ctx.fill(); ctx.globalAlpha=1; }
+  ctx.restore();
+
+  // health bar + label above the house
+  const bw=w, bx=cx-bw/2, by=cy-hh/2-20;
+  ctx.fillStyle="rgba(0,0,0,.2)"; roundRect2b(bx,by,bw,8,4); ctx.fill();
+  const pct=Math.max(0,G.gardenHP/G.gardenHPMax);
+  ctx.fillStyle=pct>0.4?"#6FBE7E":"#D2523E"; roundRect2b(bx,by,bw*pct,8,4); ctx.fill();
+  ctx.strokeStyle="#2E2418"; ctx.lineWidth=1.5; roundRect2b(bx,by,bw,8,4); ctx.stroke();
+  ctx.fillStyle="#2E2418"; ctx.font=`700 ${Math.max(10,TS*0.15)}px "Gowun Dodum",sans-serif`; ctx.textAlign="center"; ctx.textBaseline="alphabetic";
+  ctx.fillText(`🏠 ${Math.ceil(G.gardenHP)}/${G.gardenHPMax}`,cx,by-6);
+}
+function drawAttackArrow(t){
+  ctx.save();
+  ctx.globalAlpha=0.20+Math.sin(t*2)*0.05;
+  ctx.strokeStyle="#D2523E"; ctx.lineWidth=3; ctx.setLineDash([9,8]); ctx.lineCap="round";
+  const x1=gx(COLS-1)+TS*0.55, y1=gy(ROWS-1)+TS*0.5;
+  const x2=HOUSE_X+HOUSE_W*0.55, y2=FOY+TS*ROWS*0.22;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  ctx.setLineDash([]);
+  const ang=Math.atan2(y2-y1,x2-x1);
+  ctx.beginPath(); ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-15*Math.cos(ang-0.4),y2-15*Math.sin(ang-0.4));
+  ctx.lineTo(x2-15*Math.cos(ang+0.4),y2-15*Math.sin(ang+0.4));
+  ctx.closePath(); ctx.fillStyle="#D2523E"; ctx.fill();
+  ctx.restore();
+}
+function roundRect2(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function roundRect2b(x,y,w,h,r){ roundRect2(x,y,w,h,r); }
+
+/* ============================== RENDER ============================== */
+function render(t){
+  if(!CW) resizeCanvas();
+  ctx.clearRect(0,0,CW,CH);
+  ctx.save();
+  if(shakeMag>0.01){ ctx.translate((Math.random()-0.5)*shakeMag*16,(Math.random()-0.5)*shakeMag*16); }
+  drawHouse(t);
+  drawAttackArrow(t);
+  // soil tiles
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    const x=gx(c),y=gy(r);
+    ctx.fillStyle = (r+c)%2? "#E7D9AC":"#EFE2BB";
+    roundRect(x+1,y+1,TS-2,TS-2,8); ctx.fill();
+  }
+  // plants
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    const cell=G.grid[r][c]; const p=cell.plant; if(!p) continue;
+    ctx.save(); ctx.translate(gx(c)+TS/2,gy(r)+TS*0.62);
+    const punch=p.attackAnimT>0 ? 1+Math.sin((0.22-p.attackAnimT)/0.22*Math.PI)*0.16 : 1;
+    const scale=TS/120*punch;
+    ctx.scale(scale,scale);
+    if(p.vigor<40){ ctx.globalAlpha=0.55; }
+    if(p.buffT>0){ ctx.shadowColor="#F3B85C"; ctx.shadowBlur=14; }
+    if(p.invuln>0){ ctx.shadowColor="#7FB3D6"; ctx.shadowBlur=18; }
+    drawPlantDoodle(ctx,p.type,84,t,p.phase,p.chompT);
+    ctx.restore();
+    if(p.ultCd!==undefined && p.ultCd<1.4 && p.ultCd>0){
+      const glow=(1.4-p.ultCd)/1.4;
+      ctx.save(); ctx.globalAlpha=glow*0.7; ctx.strokeStyle=ULT_COLOR[p.type]||"#F3B85C"; ctx.lineWidth=2.5;
+      ctx.beginPath(); ctx.arc(gx(c)+TS/2,gy(r)+TS*0.55,TS*0.42+Math.sin(t*14)*2,0,Math.PI*2); ctx.stroke(); ctx.restore();
+    }
+    if(p.hp<p.hpMax){
+      const x=gx(c)+TS*0.18,y=gy(r)+TS*0.08,w=TS*0.64;
+      ctx.fillStyle="rgba(0,0,0,.15)"; ctx.fillRect(x,y,w,4);
+      ctx.fillStyle="#6FBE7E"; ctx.fillRect(x,y,w*Math.max(0,p.hp/p.hpMax),4);
+    }
+  }
+  // bugs
+  for(const b of G.bugs){
+    const sizeMult=BUGS[b.type].sizeMult||1;
+    ctx.save(); ctx.translate(colX(b.x),laneY(b.row));
+    const scale=TS/120*0.85*sizeMult; ctx.scale(scale,scale);
+    if(b.burrowed) ctx.globalAlpha=0.75;
+    drawBugDoodle(ctx,b.type,90,t,{hop:BUGS[b.type].hop,burrowed:b.burrowed});
+    ctx.restore();
+    const w=TS*0.5*Math.min(sizeMult,1.8), barY=laneY(b.row)-TS*(0.42+ (sizeMult-1)*0.16);
+    ctx.fillStyle="rgba(0,0,0,.2)"; ctx.fillRect(colX(b.x)-w/2,barY,w,sizeMult>1?6:4);
+    ctx.fillStyle="#D2523E"; ctx.fillRect(colX(b.x)-w/2,barY,w*Math.max(0,b.hp/b.hpMax),sizeMult>1?6:4);
+  }
+  // projectiles
+  for(const pr of G.projectiles){
+    ctx.save(); ctx.strokeStyle="#2E2418"; ctx.lineWidth=1.3;
+    if(pr.type==="dandelion"||pr.type==="windDandelion"){
+      ctx.fillStyle= pr.type==="windDandelion" ? "#DCEBF5" : "#FBF7EC";
+      for(let i=0;i<6;i++){ const a=i/6*Math.PI*2+pr.x*0.3; ctx.beginPath(); ctx.moveTo(pr.x+Math.cos(a)*4,pr.y+Math.sin(a)*4); ctx.lineTo(pr.x+Math.cos(a)*8,pr.y+Math.sin(a)*8); ctx.strokeStyle="rgba(46,36,24,.5)"; ctx.lineWidth=1; ctx.stroke(); }
+      ctx.beginPath(); ctx.arc(pr.x,pr.y,4.2,0,Math.PI*2); ctx.fillStyle= pr.type==="windDandelion" ? "#DCEBF5" : "#FBF7EC"; ctx.fill(); ctx.strokeStyle="#2E2418"; ctx.lineWidth=1.2; ctx.stroke();
+    } else if(pr.type==="sporeTrap"){
+      ctx.fillStyle="#C9A6E0"; ctx.beginPath(); ctx.arc(pr.x,pr.y,4.5,0,Math.PI*2); ctx.fill(); ctx.stroke();
+      ell(ctx,pr.x-3.5,pr.y-2,1.4,1.4,"rgba(255,255,255,.7)");
+    } else {
+      ctx.fillStyle="#FBF7EC"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(pr.x,pr.y,5,0,Math.PI*2); ctx.fill(); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // particles
+  for(const p of G.particles){ ctx.globalAlpha=Math.max(0,1-p.age/p.life); ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1; }
+  drawFX();
+  ctx.restore();
+}
+function roundRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+
+/* ============================== HUD ============================== */
+function updateHUD(){
+  $("coinCount").textContent=Math.floor(G.coins);
+  $("waveLabel").textContent=`${G.wave} / ${TOTAL_WAVES}`;
+  $("waterCount").textContent=`${G.waterCharges}/${G.waterMax}`;
+  $("hpbar-fill").style.width=Math.round(G.gardenHP/G.gardenHPMax*100)+"%";
+  renderTray();
+}
+function tickHUDTimers(){
+  if(G.waveState==="prep"){ $("waveTimerLabel").textContent="다음 웨이브까지"; $("waveLabel").textContent=`${Math.ceil(Math.max(0,G.waveTimer))}s`; }
+  else { $("waveTimerLabel").textContent="진행 중"; $("waveLabel").textContent=`웨이브 ${G.wave}/${TOTAL_WAVES}`; }
+  $("coinCount").textContent=Math.floor(G.coins);
+  $("hpbar-fill").style.width=Math.round(G.gardenHP/G.gardenHPMax*100)+"%";
+}
+
+/* ============================== OVERLAYS: SHOP / SYNTH / SETTINGS / TUTORIAL / GAMEOVER ============================== */
+function openOverlay(html){
+  const ov=document.createElement("div"); ov.className="overlay";
+  ov.innerHTML=`<div class="modal">${html}</div>`;
+  overlayHost.appendChild(ov);
+  ov.addEventListener("pointerdown",(e)=>{ if(e.target===ov) closeOverlay(ov); });
+  return ov;
+}
+function closeOverlay(ov){ ov.remove(); }
+
+let shopTab="buy";
+function openShop(){
+  const ov=openOverlay(`<button class="modal-close">✕</button><h2>🏠 상점</h2><div class="sub">보유 코인 <b>${Math.floor(G.coins)}C</b></div>
+    <div class="shop-tabs"><button class="shop-tab" id="tabBuy">새 식물</button><button class="shop-tab" id="tabUpg">식물 강화</button></div>
+    <div id="shopList"></div>`);
+  ov.querySelector(".modal-close").onclick=()=>closeOverlay(ov);
+  $("tabBuy").onclick=()=>{ shopTab="buy"; renderShop(ov); };
+  $("tabUpg").onclick=()=>{ shopTab="upgrade"; renderShop(ov); };
+  renderShop(ov);
+}
+function renderShop(ov){
+  $("tabBuy").classList.toggle("on",shopTab==="buy");
+  $("tabUpg").classList.toggle("on",shopTab==="upgrade");
+  const list=ov.querySelector("#shopList");
+  ov.querySelector(".sub").innerHTML=`보유 코인 <b>${Math.floor(G.coins)}C</b>`;
+  if(shopTab==="buy") renderShopBuy(list); else renderShopUpgrade(list);
+}
+function renderShopBuy(list){
+  const locked=PLANT_ORDER.filter(id=>!G.unlockedPlants.includes(id) && !PLANTS[id].recipe);
+  let rows="";
+  locked.forEach(id=>{ const d=PLANTS[id];
+    rows+=`<div class="shop-item"><div class="icon-slot"></div><div class="meta"><b>${d.name}</b><div class="d">${d.desc}</div></div><button data-id="${id}" ${G.coins<d.cost?"disabled":""}>${d.cost}C 구매</button></div>`;
+  });
+  if(!rows) rows=`<p class="sub">모든 기본 식물을 다 보유했어요! 합성 탭에서 더 강한 식물을 만들어보세요.</p>`;
+  list.innerHTML=rows;
+  list.querySelectorAll(".shop-item").forEach((el,i)=>{ const id=locked[i]; const slot=el.querySelector(".icon-slot"); cardIconCanvas(slot,id).style.width="46px"; });
+  list.querySelectorAll("button[data-id]").forEach(btn=>{
+    btn.onclick=()=>{ const id=btn.dataset.id, d=PLANTS[id]; if(G.coins<d.cost) return;
+      G.coins-=d.cost; G.unlockedPlants.push(id); updateHUD(); showToast(`${d.name} 구매 완료!`); renderShop(btn.closest(".overlay")); };
+  });
+}
+function renderShopUpgrade(list){
+  const owned=PLANT_ORDER.filter(id=>G.unlockedPlants.includes(id));
+  let rows="";
+  owned.forEach(id=>{
+    const d=PLANTS[id]; const up=G.plantUpgrades[id]||{atk:0,hp:0};
+    const atkMax=up.atk>=UPGRADE_MAX, hpMax=up.hp>=UPGRADE_MAX;
+    const atkCost=atkMax?0:atkUpgradeCost(id,up.atk), hpCost=hpMax?0:hpUpgradeCost(id,up.hp);
+    const dots=(lvl)=>`<span class="lvdots">${Array.from({length:UPGRADE_MAX}).map((_,i)=>`<span class="${i<lvl?'on':''}"></span>`).join("")}</span>`;
+    rows+=`<div class="shop-item"><div class="icon-slot"></div>
+      <div class="meta"><b>${d.name}</b><div class="d">공격력 ${dots(up.atk)} · 체력 ${dots(up.hp)}</div></div>
+      <div class="upg-btns">
+        <button class="upg-atk" data-id="${id}" data-kind="atk" ${atkMax||G.coins<atkCost?"disabled":""}>⚔ ${atkMax?"MAX":atkCost+"C"}</button>
+        <button class="upg-hp" data-id="${id}" data-kind="hp" ${hpMax||G.coins<hpCost?"disabled":""}>❤ ${hpMax?"MAX":hpCost+"C"}</button>
+      </div></div>`;
+  });
+  if(!rows) rows=`<p class="sub">아직 보유한 식물이 없어요. 먼저 씨앗을 심거나 상점에서 구매해보세요.</p>`;
+  list.innerHTML=rows;
+  list.querySelectorAll(".shop-item").forEach((el,i)=>{ const id=owned[i]; const slot=el.querySelector(".icon-slot"); cardIconCanvas(slot,id).style.width="46px"; });
+  list.querySelectorAll("button[data-id]").forEach(btn=>{
+    btn.onclick=()=>{
+      const id=btn.dataset.id, kind=btn.dataset.kind, up=G.plantUpgrades[id]||{atk:0,hp:0};
+      const lvl=up[kind]; if(lvl>=UPGRADE_MAX) return;
+      const cost=kind==="atk"?atkUpgradeCost(id,lvl):hpUpgradeCost(id,lvl);
+      if(G.coins<cost) return;
+      G.coins-=cost; up[kind]=lvl+1; G.plantUpgrades[id]=up;
+      if(kind==="hp"){
+        const def=PLANTS[id], newMax=effHpMax(def);
+        for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){ const cell=G.grid[r][c];
+          if(cell.plant && cell.plant.type===id){ const delta=newMax-cell.plant.hpMax; cell.plant.hpMax=newMax; cell.plant.hp=Math.min(newMax,cell.plant.hp+delta); }
+        }
+      }
+      updateHUD(); showToast(`${PLANTS[id].name} ${kind==="atk"?"공격력":"체력"} 강화!`); renderShop(btn.closest(".overlay"));
+    };
+  });
+}
+
+function openSynth(){
+  let rows="";
+  RECIPES.forEach(id=>{
+    const d=PLANTS[id]; const [a,b]=d.recipe;
+    const have=G.unlockedPlants.includes(id);
+    const canMake=!have && G.unlockedPlants.includes(a) && G.unlockedPlants.includes(b) && G.coins>=d.cost;
+    rows+=`<div class="recipe"><div class="ia"></div><span class="plus">+</span><div class="ib"></div><span class="eq">=</span><div class="ic"></div>
+      <div class="meta"><b>${d.name}${have?" ✅":""}</b><div class="d">${d.desc}</div></div>
+      <button data-id="${id}" ${have||!canMake?"disabled":""}>${have?"완료":d.cost+"C"}</button></div>`;
+  });
+  const ov=openOverlay(`<button class="modal-close">✕</button><h2>🧪 합성</h2><div class="sub">두 식물을 합쳐 더 강력한 식물을 만들어요.</div><div id="synthList"></div>`);
+  ov.querySelector(".modal-close").onclick=()=>closeOverlay(ov);
+  const list=ov.querySelector("#synthList"); list.innerHTML=rows;
+  list.querySelectorAll(".recipe").forEach((el,i)=>{
+    const id=RECIPES[i]; const [a,b]=PLANTS[id].recipe;
+    cardIconCanvas(el.querySelector(".ia"),a).style.width="34px";
+    cardIconCanvas(el.querySelector(".ib"),b).style.width="34px";
+    cardIconCanvas(el.querySelector(".ic"),id).style.width="34px";
+  });
+  list.querySelectorAll("button[data-id]").forEach(btn=>{
+    btn.onclick=()=>{ const id=btn.dataset.id, d=PLANTS[id]; if(G.coins<d.cost) return;
+      G.coins-=d.cost; G.unlockedPlants.push(id); updateHUD(); closeOverlay(ov); showToast(`✨ ${d.name} 합성 완료!`); openSynth(); };
+  });
+}
+
+function openSettings(){
+  const wasPaused=G.paused; G.paused=true;
+  const ov=openOverlay(`<h2>⚙ 설정</h2><div class="sub">일시정지됨</div>
+    <div class="stack">
+      <button class="btn secondary" id="stResume">▶ 계속하기</button>
+      <button class="btn secondary" id="stTut">📖 튜토리얼 다시보기</button>
+      <button class="btn secondary" id="stRestart">🔄 재시작</button>
+      <div class="row2">
+        <button class="btn" id="stSaveExit">💾 저장하고 나가기</button>
+        <button class="btn danger" id="stExit">🚪 저장없이 나가기</button>
+      </div>
+    </div>`);
+  $("stResume").onclick=()=>{ G.paused=wasPaused; closeOverlay(ov); };
+  $("stTut").onclick=()=>{ closeOverlay(ov); runTutorial(true); };
+  $("stRestart").onclick=()=>{ showConfirm("정말 처음부터 다시 시작할까요?",()=>{ clearSave(); closeOverlay(ov); boot(true); }); };
+  $("stSaveExit").onclick=()=>{ saveGame(); closeOverlay(ov); showStart(); };
+  $("stExit").onclick=()=>{ showConfirm("저장하지 않고 나갈까요?",()=>{ clearSave(); closeOverlay(ov); showStart(); }); };
+}
+// window.confirm()/alert() are blocked inside the sandboxed artifact iframe (they silently no-op),
+// so any yes/no prompt has to be this in-page modal instead.
+function showConfirm(message,onYes){
+  const cov=openOverlay(`<h2>확인해주세요</h2><p class="sub">${message}</p>
+    <div class="row2"><button class="btn secondary" id="cfNo">취소</button><button class="btn danger" id="cfYes">확인</button></div>`);
+  $("cfNo").onclick=()=>closeOverlay(cov);
+  $("cfYes").onclick=()=>{ closeOverlay(cov); onYes(); };
+}
+
+function triggerGameOver(win){
+  G.over=true; G.win=win; clearSave();
+  const ov=openOverlay(`<h2 style="text-align:center">${win?"🏆 정원 방어 성공!":"🥀 정원이 무너졌어요"}</h2>
+    <p class="sub" style="text-align:center">${win? "15개의 웨이브를 모두 막아냈어요!":`웨이브 ${G.wave}에서 정원 체력이 다했어요.`}</p>
+    <div class="stack"><button class="btn" id="goRestart">새 게임 시작</button></div>`);
+  $("goRestart").onclick=()=>{ closeOverlay(ov); boot(true); };
+}
+
+/* ---------- tutorial ---------- */
+const TUT_STEPS=[
+  {t:"환영해요!",d:"벌레들이 정원 왼쪽 끝까지 오지 못하게 식물로 막아주세요."},
+  {t:"식물 심기",d:"하단 🌿 식물목록에서 카드를 밭으로 끌어다 놓으면 심을 수 있어요."},
+  {t:"물 주기",d:"💧 버튼을 누른 뒤 식물을 눌러 물을 줘요. 가뭄엔 물을 안 주면 식물이 시들어요."},
+  {t:"합성 & 상점",d:"🧪 합성으로 더 강한 식물을 만들고, 🏠 상점에서 새 식물을 구매하세요."},
+  {t:"판매 & 정보",d:"PC는 우클릭, 모바일은 길게 눌러서 식물을 판매해요. 짧게 누르면 정보를 봐요."},
+];
+function runTutorial(replay){
+  let idx=0;
+  const ov=openOverlay("");
+  const modal=ov.querySelector(".modal");
+  function draw(){
+    const s=TUT_STEPS[idx];
+    modal.innerHTML=`<div class="tut-step" style="text-align:center">
+      <div style="font-size:38px">${["🌻","🌿","💧","🧪","✂️"][idx]}</div>
+      <h2>${s.t}</h2><p class="sub">${s.d}</p>
+      <div class="tut-dots">${TUT_STEPS.map((_,i)=>`<span class="${i===idx?'on':''}"></span>`).join("")}</div>
+      <div class="stack"><button class="btn" id="tutNext">${idx===TUT_STEPS.length-1?"시작하기":"다음"}</button>${idx>0?'<button class="btn secondary" id="tutSkip">건너뛰기</button>':""}</div>
+    </div>`;
+    $("tutNext").onclick=()=>{ idx++; if(idx>=TUT_STEPS.length){ localStorage.setItem(TUT_KEY,"1"); closeOverlay(ov); if(!replay){} } else draw(); };
+    const sk=document.getElementById("tutSkip"); if(sk) sk.onclick=()=>{ localStorage.setItem(TUT_KEY,"1"); closeOverlay(ov); };
+  }
+  draw();
+}
+
+/* ============================== BUTTONS ============================== */
+$("btnShop").onclick=openShop;
+$("btnSynth").onclick=openSynth;
+$("btnSettings").onclick=openSettings;
+$("btnTray").onclick=()=>{ trayEl.classList.toggle("hidden"); };
+document.addEventListener("keydown",(e)=>{ if(e.key==="Escape"){ if(overlayHost.children.length) { Array.from(overlayHost.children).forEach(c=>c.remove()); G.paused=false; } else openSettings(); } });
+
+let waterModeBtn=null;
+(function addWaterModeToggle(){
+  // reuse the tray-toggle icon row: add a dedicated water-mode toggle next to weather pill for quick access
+  const btn=document.createElement("button");
+  btn.className="icon-btn"; btn.style.width="26px"; btn.style.height="26px"; btn.style.fontSize="13px"; btn.title="물주기 모드";
+  btn.textContent="💧"; btn.style.marginLeft="2px";
+  $("weatherPill").after(btn);
+  btn.onclick=()=>{ G.waterMode=!G.waterMode; btn.classList.toggle("active-mode",G.waterMode); showToast(G.waterMode?"물주기 모드 ON: 식물을 눌러 물을 주세요":"물주기 모드 OFF"); };
+  waterModeBtn=btn;
+})();
+
+/* ============================== START SCREEN ============================== */
+function showStart(){
+  overlayHost.innerHTML="";
+  const wrap=document.createElement("div"); wrap.className="center-screen";
+  const canContinue=hasSave();
+  wrap.innerHTML=`<h1>🌱 새싹 수비대</h1>
+    <p>정원 주인이 되어 씨앗과 새싹으로 몰려오는 벌레들을 막아내세요. 총 ${TOTAL_WAVES}개의 웨이브가 기다리고 있어요.</p>
+    <div class="bug-strip" id="bugStrip"></div>
+    <div class="stack" style="width:220px">
+      ${canContinue?'<button class="btn" id="btnContinue">이어하기</button>':""}
+      <button class="btn ${canContinue?'secondary':''}" id="btnNew">새 게임 시작</button>
+    </div>`;
+  $("shell").appendChild(wrap);
+  const strip=wrap.querySelector("#bugStrip");
+  ["ant","snail","butterfly","grasshopper","earthworm"].forEach(type=>{
+    const c=document.createElement("canvas"); c.width=80; c.height=80; strip.appendChild(c);
+    const cx=c.getContext("2d"); cx.translate(40,44); drawBugDoodle(cx,type,60,performance.now()/1000,{hop:BUGS[type].hop});
+  });
+  const contBtn=wrap.querySelector("#btnContinue");
+  if(contBtn) contBtn.onclick=()=>{ wrap.remove(); loadGame(); afterBoot(false); };
+  wrap.querySelector("#btnNew").onclick=()=>{ wrap.remove(); boot(true); };
+}
+
+function boot(forceNew){
+  if(forceNew) clearSave();
+  G=freshState();
+  afterBoot(true);
+}
+function afterBoot(isNew){
+  FX_RINGS.length=0; FX_TEXTS.length=0; FX_SWIPES.length=0; shakeMag=0; houseFlashT=0; houseShakeT=0; slowMoT=0;
+  updateWeatherUI(); updateHUD();
+  resizeCanvas();
+  overlayHost.innerHTML="";
+  if(!localStorage.getItem(TUT_KEY)){ runTutorial(false); }
+}
+
+/* boot sequence */
+G=freshState(); G.paused=true; // valid state must exist before loop() ever runs, or it throws on frame 1
+resizeCanvas();
+showStart();
+requestAnimationFrame(loop);
+
+})();
+</script>
