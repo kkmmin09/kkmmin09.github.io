@@ -14,7 +14,7 @@ comments: false
 
 | 분야 | 기술 |
 |---|---|
-| 프론트엔드 | HTML, CSS, JavaScript, jQuery, React |
+| 프론트엔드 | HTML, CSS, JavaScript, jQuery |
 | 그 외 | Python, Java, SQL(MySQL) |
 
 ## 🚀 만든 프로젝트
