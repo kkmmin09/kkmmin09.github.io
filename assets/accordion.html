@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>아코디언 메뉴</title>
+    <style>
+        * { margin: 0; padding: 0; }
+        ul, li { list-style: none; }
+        a { text-decoration: none; color: #000; }
+        body { font-family: sans-serif; }
+
+        #navi { width: 200px; margin: 20px auto 0; }
+        #navi .title {
+            height: 36px;
+            line-height: 36px;
+            background-color: #390;
+            border-top: 1px dotted #fff;
+            text-indent: 10px;
+            color: #fff;
+            cursor: pointer;
+        }
+        #navi .sub { display: none; }
+        #navi .sub li {
+            height: 36px;
+            line-height: 36px;
+            background-color: #cf9;
+        }
+        #navi .sub li a {
+            display: block;
+            width: 100%;
+            color: #222;
+            text-indent: 10px;
+        }
+        #navi .sub li:hover a { background-color: #cf0; }
+    </style>
+</head>
+<body>
+    <ul id="navi">
+        <li>
+            <div class="title">MainMenu1</div>
+            <ul class="sub">
+                <li><a href="#">sub1</a></li>
+                <li><a href="#">sub2</a></li>
+                <li><a href="#">sub3</a></li>
+            </ul>
+        </li>
+        <li>
+            <div class="title">MainMenu2</div>
+            <ul class="sub">
+                <li><a href="#">sub1</a></li>
+                <li><a href="#">sub2</a></li>
+                <li><a href="#">sub3</a></li>
+            </ul>
+        </li>
+        <li>
+            <div class="title">MainMenu3</div>
+            <ul class="sub">
+                <li><a href="#">sub1</a></li>
+                <li><a href="#">sub2</a></li>
+                <li><a href="#">sub3</a></li>
+                <li><a href="#">sub4</a></li>
+                <li><a href="#">sub5</a></li>
+            </ul>
+        </li>
+        <li>
+            <div class="title">MainMenu4</div>
+            <ul class="sub">
+                <li><a href="#">sub1</a></li>
+                <li><a href="#">sub2</a></li>
+                <li><a href="#">sub3</a></li>
+            </ul>
+        </li>
+    </ul>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        $(function(){
+            $('#navi .title').click(function(){
+                // 누른 제목 바로 다음의 서브 메뉴 열고 닫기
+                $(this).next('.sub').stop().slideToggle(300);
+                // 다른 메뉴의 서브 메뉴는 닫기
+                $(this).parent().siblings().find('.sub').stop().slideUp(300);
+            });
+        });
+    </script>
+</body>
+</html>
