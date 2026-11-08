@@ -3,6 +3,7 @@ layout: post
 title: "새싹 수비대 — 타워디펜스 만들며 배우는 JS 실습"
 excerpt: "식물을 심어 벌레로부터 정원을 지키는 웹 타워디펜스 '새싹 수비대'를 7개의 실습으로 나눠, 직접 따라 만들고 바꿔보며 정리했습니다."
 comments: true
+project: true
 ---
 
 [🎮 새싹 수비대 플레이하기](/assets/새싹수비대.html)
